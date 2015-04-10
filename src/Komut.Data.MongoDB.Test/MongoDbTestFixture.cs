@@ -29,7 +29,7 @@ namespace Komut.Data.MongoDB.Test
             PersonRepository.Insert(person);
         }
 
-        static IRepository<Person> PersonRepository
+        static IRepository<Person> PersonRepository 
         {
             get
             {
