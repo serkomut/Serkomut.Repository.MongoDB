@@ -9,56 +9,50 @@ namespace Komut.Data.MongoDB.Test
     [TestFixture]
     public class MongoDbTestFixture
     {
+        PersonRepository repository;
         [TestFixtureSetUp]
         public void Setup()
         {
+            var client = new MongoClient("mongodb://localhost:27017");
             BsonClassMap.RegisterClassMap<BaseEntity>(map => map.AutoMap());
+            repository = new PersonRepository(client.GetDatabase("KomutMongo"));
         }
 
         [Test]
-        public void CreatePerson()
+        public async void CreatePerson()
         {
             var person = new Person
             {
-                Id = Guid.NewGuid(),
                 BirthDate = DateTime.Now,
                 Name = "Test",
                 Surname = "MongoDB"
             };
 
-            PersonRepository.Insert(person);
-        }
-
-        static IRepository<Person> PersonRepository 
-        {
-            get
-            {
-                return new MongoDbRepository<Person>();
-            }
-        }
-
-        [Test]
-        public async void MongoNew()
-        {
-            var client = new MongoClient("mongodb://localhost:27017");
-            var database = client.GetDatabase("foo");
-            var collection = database.GetCollection<Person>("bar");
-
-            await collection.InsertOneAsync(new Person { Name = "Jack" });
-
-            var list = await collection.Find(x => x.Name == "Jack").ToListAsync();
-
-            foreach (var person in list)
-            {
-                Console.WriteLine(person.Name);
-            }
+            await repository.Insert(person);
         }
     }
 
-    public class Person: BaseEntity
+    public class Person: Entity
     {
+        public Person()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
         public string Name { get; set; }
         public string Surname { get; set; }
         public DateTime BirthDate { get; set; }
+    }
+
+    public interface IPersonRepotsitory : IRepository<Person>
+    {
+        
+    }
+
+    public class PersonRepository : MongoDbRepository<Person>, IPersonRepotsitory
+    {
+        public PersonRepository(IMongoDatabase database) : base(database)
+        {
+            
+        }
     }
 }

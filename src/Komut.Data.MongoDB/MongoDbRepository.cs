@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Komut.Data.MongoDB.Core;
@@ -8,76 +7,43 @@ using MongoDB.Driver;
 
 namespace Komut.Data.MongoDB
 {
-    public class MongoDbRepository<T> : IRepository<T> where T : BaseEntity
+    public class MongoDbRepository<TEntity> : IRepository<TEntity> where TEntity : Entity<string>
     {
-        readonly IMongoDatabase database;
-
-        public MongoDbRepository()
+        private readonly IMongoCollection<TEntity> collection;
+        public MongoDbRepository(IMongoDatabase database)
         {
-            //GetDatabase();
-            //GetCollection();
-            var client = new MongoClient("mongodb://localhost:27017");
-            database = client.GetDatabase("KomutMongo");
+            this.collection = database.GetCollection<TEntity>(typeof(TEntity).Name);
         }
 
-        public async Task Insert(T entity)
+        public async Task Insert(TEntity entity)
         {
-            entity.Id = Guid.NewGuid();
-            await Collection.InsertOneAsync(entity);
+            await collection.InsertOneAsync(entity);
         }
 
-        public async Task<UpdateResult> Update(FilterDefinition<T> filter, UpdateDefinition<T> update)
+        public async Task<UpdateResult> Update(FilterDefinition<TEntity> filter, UpdateDefinition<TEntity> update)
         {
-            return await Collection.UpdateOneAsync(filter, update);
+            return await collection.UpdateOneAsync(filter, update);
         }
 
-        public async Task<DeleteResult> Delete(FilterDefinition<T> filter)
+        public async Task<DeleteResult> Delete(FilterDefinition<TEntity> filter)
         {
-            return await Collection.DeleteOneAsync(filter);
+            return await collection.DeleteOneAsync(filter);
         }
 
-        public Task<IList<T>> SearchFor(Expression<Func<T, bool>> predicate)
+        public Task<IList<TEntity>> SearchFor(Expression<Func<TEntity, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IAsyncCursor<T>> GetAll(FilterDefinition<T> entity)
+        public async Task<IAsyncCursor<TEntity>> GetAll(FilterDefinition<TEntity> entity)
         {
-            return await Collection.FindAsync(entity);
+            return await collection.FindAsync(entity);
         }
 
-        public async Task<T> GetById(Guid id)
+        public async Task<TEntity> GetById(string id)
         {
-            return await Collection.Find(x => x.Id == id).SingleAsync();
+            return await collection.Find(x => x.Id == id).SingleAsync();
         }
-
-        //private void GetDatabase()
-        //{
-        //    var connectionString = GetConnectionString();
-        //    var databaseName = GetDatabaseName();
-        //    var client = new MongoClient("mongodb://localhost:27017");
-        //    database = client.GetDatabase("KomutMongo");
-        //}
-
-        //private string GetConnectionString()
-        //{
-        //    return ConfigurationManager
-        //        .AppSettings
-        //            .Get("MongoConnectionString")
-        //                .Replace("{DB_NAME}", GetDatabaseName());
-        //}
-
-        //private string GetDatabaseName()
-        //{
-        //    return ConfigurationManager
-        //        .AppSettings
-        //            .Get("MongoDbDataBaseName");
-        //}
-
-        IMongoCollection<T> Collection
-        {
-            get { return database.GetCollection<T>(typeof (T).FullName); }
-        } 
 
     }
 }
