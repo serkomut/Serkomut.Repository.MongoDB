@@ -10,7 +10,7 @@ namespace Komut.Data.MongoDB.Core
     public interface IRepository<T, in TKey> where T : IEntity<TKey>
     {
         Task Insert(T entity);
-        Task<UpdateResult> Update(FilterDefinition<T> entity, UpdateDefinition<T> update);
+        Task Update(T update);
         Task<DeleteResult> Delete(FilterDefinition<T> entity);
         Task<IList<T>> SearchFor(Expression<Func<T, bool>> predicate);
         Task<IAsyncCursor<T>> GetAll(FilterDefinition<T> entity);

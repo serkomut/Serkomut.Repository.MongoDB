@@ -12,7 +12,7 @@ namespace Komut.Data.MongoDB
         private readonly IMongoCollection<TEntity> collection;
         public MongoDbRepository(IMongoDatabase database)
         {
-            this.collection = database.GetCollection<TEntity>(typeof(TEntity).Name);
+            this.collection = database.GetCollection<TEntity>(typeof(TEntity).FullName);
         }
 
         public async Task Insert(TEntity entity)
@@ -20,9 +20,9 @@ namespace Komut.Data.MongoDB
             await collection.InsertOneAsync(entity);
         }
 
-        public async Task<UpdateResult> Update(FilterDefinition<TEntity> filter, UpdateDefinition<TEntity> update)
+        public async Task Update(TEntity update)
         {
-            return await collection.UpdateOneAsync(filter, update);
+            await collection.FindOneAndReplaceAsync(x => x.Id == update.Id, update);
         }
 
         public async Task<DeleteResult> Delete(FilterDefinition<TEntity> filter)
